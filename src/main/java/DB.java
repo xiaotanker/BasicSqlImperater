@@ -30,6 +30,8 @@ public class DB {
         if(commandLine.length()==0){
             return;
         }
+        System.out.println("executing command:"+commandLine);
+        long startTime=System.currentTimeMillis();
         if(commandLine.contains(":=")){//assignment
             String targetName=commandLine.split(":=")[0];
             String command=commandLine.split(":=")[1];
@@ -45,7 +47,7 @@ public class DB {
                 case "inputfromfile":
                     this.tables.put(targetName,new Table(commandContent));
                     break;
-                case "projection":
+                case "project":
                     args = commandContent.split(",");
 
                     Table t = this.tables.get(args[0]);
@@ -128,6 +130,8 @@ public class DB {
 
             }
         }
+        long endTime = System.currentTimeMillis();
+        System.out.println("used time :"+(endTime-startTime)+"ms");
     }
 
     private List<Map<String,Integer>> getRangeJoinByBtreeIndex(String n1,String n2,String joinRow1,String joinRow2,String condition,String op){
@@ -164,11 +168,15 @@ public class DB {
                         break;
                     case ">=":
                         ll =btree.greaterQuery(record2.get(joinRow2));
-                        ll.add(btree.get(record2.get(joinRow2)));
+                        List<Integer> index = btree.get(record2.get(joinRow2));
+                        if(index!=null)
+                            ll.add(index);
                         break;
                     case "<=":
                         ll =btree.lesserQuery(record2.get(joinRow2));
-                        ll.add(btree.get(record2.get(joinRow2)));
+                        List<Integer> indexL = btree.get(record2.get(joinRow2));
+                        if(indexL!=null)
+                            ll.add(indexL);
                         break;
                 }
                 for(int j=0;j<ll.size();j++){
@@ -199,11 +207,15 @@ public class DB {
                         break;
                     case ">=":
                         ll = btree.lesserQuery(record1.get(joinRow1));
-                        ll.add(btree.get(record1.get(joinRow1)));
+                        List<Integer> index = btree.get(record1.get(joinRow1));
+                        if(index!=null)
+                            ll.add(index);
                         break;
                     case "<=":
                         ll = btree.greaterQuery(record1.get(joinRow1));
-                        ll.add(btree.get(record1.get(joinRow1)));
+                        List<Integer> indexL = btree.get(record1.get(joinRow1));
+                        if(indexL!=null)
+                            ll.add(indexL);
                         break;
                 }
                 for(int j=0;j<ll.size();j++){
