@@ -271,6 +271,7 @@ public class Table {
         List<Map<String,Integer>> newRecords = null;
         String l = condition.split(op)[0];
         String r = condition.split(op)[1];
+        List<Integer> index;
         Integer x =0;
         String indexRow;
         int flag=0;
@@ -294,14 +295,20 @@ public class Table {
                         break;
                     case ">="://a>=5
                         ll = btree.greaterQuery(x);
-                        ll.add(btree.get(x));
+                        index = btree.get(x);
+                        if(index!=null) {
+                            ll.add(index);
+                        }
                         break;
                     case "<":
                         ll = btree.lesserQuery(x);
                         break;
                     case "<=":
                         ll = btree.lesserQuery(x);
-                        ll.add(btree.get(x));
+                        index = btree.get(x);
+                        if(index!=null) {
+                            ll.add(index);
+                        }
                 }
 
             }
@@ -312,14 +319,20 @@ public class Table {
                         break;
                     case ">="://a>=5
                         ll = btree.lesserQuery(x);
-                        ll.add(btree.get(x));
+                        index = btree.get(x);
+                        if(index!=null) {
+                            ll.add(index);
+                        }
                         break;
                     case "<":
                         ll = btree.greaterQuery(x);
                         break;
                     case "<=":
                         ll = btree.greaterQuery(x);
-                        ll.add(btree.get(x));
+                        index = btree.get(x);
+                        if(index!=null) {
+                            ll.add(index);
+                        }
                 }
             }
             for (int i = 0; i < ll.size(); i++) {
@@ -349,10 +362,12 @@ public class Table {
             }
             if(indexes.containsKey(indexRow)){//index used
                 List<Integer> indexList = indexes.get(indexRow).get(x);
-                for(Integer i: indexList){
-                    newRecords.add(this.records.get(i));
+                if(indexList!=null) {
+                    for (Integer i : indexList) {
+                        newRecords.add(this.records.get(i));
+                    }
+                    return new Table(newRecords, this.rowNames);
                 }
-                return new Table(newRecords,this.rowNames);
             }
 
         }
@@ -385,13 +400,13 @@ public class Table {
 
         }
         CharStream stream = CharStreams.fromString(conditions);
-        //用 in 构造词法分析器 lexer，词法分析的作用是产生记号
+
         GrammarLexer lexer = new GrammarLexer(stream);
 
-        //用词法分析器 lexer 构造一个记号流 tokens
+
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        //再使用 tokens 构造语法分析器 parser,至此已经完成词法分析和语法分析的准备工作
+
         GrammarParser parser = new GrammarParser(tokens);
         GrammarParser.ConditionsContext ctx=parser.conditions();
 
