@@ -1,13 +1,13 @@
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
+
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
 public class Boot {
     public static void main(String[]args){
+
+
         if(args.length<1){
             System.out.println("input needed: commandFile");
         }
