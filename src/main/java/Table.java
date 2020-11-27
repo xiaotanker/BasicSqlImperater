@@ -104,6 +104,18 @@ public class Table {
     }
 
     public Table sort(List<String> rows){
+        if(indexes.containsKey(rows.get(0))&&indexes.get(rows.get(0))instanceof BTree){//BTree indexed
+            List<Map<String,Integer>> newRecords = new ArrayList<>();
+            BTree<Integer,List<Integer>> btree = (BTree) indexes.get(rows.get(0));
+            List<List<Integer>> ll = btree.lesserQuery(Integer.MAX_VALUE);
+            for(int i=0;i<ll.size();i++){
+                List<Integer> l = ll.get(i);
+                for(int j=0;j<l.size();j++){
+                    newRecords.add(this.records.get(l.get(j)));
+                }
+            }
+            return new Table(newRecords,this.rowNames);
+        }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         for(int i=0;i<records.size();i++){
             newRecords.add(records.get(i));
@@ -278,7 +290,144 @@ public class Table {
             }
 
         }
+        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)>(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+            String l = conditions.split(">")[0];
+            String r = conditions.split(">")[1];
+            Integer x =0;
+            String indexRow;
+            int flag=0;
+            if(l.matches("[0-9]+")){//5>A
+                x=Integer.valueOf(l);
+                indexRow=r;
+                flag=1;
+            }else{//A>5
+                x=Integer.valueOf(r);
+                indexRow=l;
+            }
+            if(indexes.get(indexRow)!=null&&indexes.get(indexRow) instanceof BTree) {
+                BTree<Integer, List<Integer>> btree = (BTree) indexes.get(indexRow);
 
+                List<List<Integer>> ll =null;
+                if(flag==0){
+                    ll = btree.greaterQuery(x);
+                }
+                else{
+                    ll=btree.lesserQuery(x);
+                }
+                for (int i = 0; i < ll.size(); i++) {
+                    List<Integer> list = ll.get(i);
+                    for (int j = 0; j < list.size(); j++) {
+                        newRecords.add(this.records.get(list.get(j)));
+                    }
+                }
+                return new Table(newRecords, this.rowNames);
+            }
+
+        }
+        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)<(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+            String l = conditions.split("<")[0];
+            String r = conditions.split("<")[1];
+            Integer x =0;
+            String indexRow;
+            int flag=0;
+            if(l.matches("[0-9]+")){//5<A
+                x=Integer.valueOf(l);
+                indexRow=r;
+                flag=1;
+            }else{//A<5
+                x=Integer.valueOf(r);
+                indexRow=l;
+            }
+            if(indexes.get(indexRow)!=null&&indexes.get(indexRow) instanceof BTree) {
+                BTree<Integer, List<Integer>> btree = (BTree) indexes.get(indexRow);
+
+                List<List<Integer>> ll =null;
+                if(flag==1){
+                    ll = btree.greaterQuery(x);
+                }
+                else{
+                    ll=btree.lesserQuery(x);
+                }
+                for (int i = 0; i < ll.size(); i++) {
+                    List<Integer> list = ll.get(i);
+                    for (int j = 0; j < list.size(); j++) {
+                        newRecords.add(this.records.get(list.get(j)));
+                    }
+                }
+                return new Table(newRecords, this.rowNames);
+            }
+
+        }
+        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)>=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+            String l = conditions.split(">=")[0];
+            String r = conditions.split(">=")[1];
+            Integer x =0;
+            String indexRow;
+            int flag=0;
+            if(l.matches("[0-9]+")){//5>=A
+                x=Integer.valueOf(l);
+                indexRow=r;
+                flag=1;
+            }else{//A>=5
+                x=Integer.valueOf(r);
+                indexRow=l;
+            }
+            if(indexes.get(indexRow)!=null&&indexes.get(indexRow) instanceof BTree) {
+                BTree<Integer, List<Integer>> btree = (BTree) indexes.get(indexRow);
+
+                List<List<Integer>> ll =null;
+                if(flag==0){
+                    ll = btree.greaterQuery(x);
+                }
+                else{
+                    ll=btree.lesserQuery(x);
+                }
+                ll.add(btree.get(x));
+                for (int i = 0; i < ll.size(); i++) {
+                    List<Integer> list = ll.get(i);
+                    for (int j = 0; j < list.size(); j++) {
+                        newRecords.add(this.records.get(list.get(j)));
+                    }
+                }
+                return new Table(newRecords, this.rowNames);
+            }
+
+        }
+        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)<=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+            String l = conditions.split("<=")[0];
+            String r = conditions.split("<=")[1];
+            Integer x =0;
+            String indexRow;
+            int flag=0;
+            if(l.matches("[0-9]+")){//5<=A
+                x=Integer.valueOf(l);
+                indexRow=r;
+                flag=1;
+            }else{//A<=5
+                x=Integer.valueOf(r);
+                indexRow=l;
+            }
+            if(indexes.get(indexRow)!=null&&indexes.get(indexRow) instanceof BTree) {
+                BTree<Integer, List<Integer>> btree = (BTree) indexes.get(indexRow);
+
+                List<List<Integer>> ll =null;
+                if(flag==1){
+                    ll = btree.greaterQuery(x);
+                }
+                else{
+                    ll=btree.lesserQuery(x);
+                }
+                ll.add(btree.get(x));
+                for (int i = 0; i < ll.size(); i++) {
+                    List<Integer> list = ll.get(i);
+                    for (int j = 0; j < list.size(); j++) {
+                        newRecords.add(this.records.get(list.get(j)));
+                    }
+                }
+                return new Table(newRecords, this.rowNames);
+            }
+
+        }
         CharStream stream = CharStreams.fromString(conditions);
         //用 in 构造词法分析器 lexer，词法分析的作用是产生记号
         GrammarLexer lexer = new GrammarLexer(stream);
