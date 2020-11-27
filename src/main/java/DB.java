@@ -26,7 +26,7 @@ public class DB {
 
 
     public void handleCommand(String commandLine) throws Exception {
-        commandLine=commandLine.split("//")[0].trim();//get rid of the comment
+        commandLine=commandLine.split("//")[0].replaceAll("\\s|\\n","");//get rid of the comment
         if(commandLine.length()==0){
             return;
         }
@@ -112,7 +112,7 @@ public class DB {
             String commandContent = commandLine.substring(commandLine.indexOf("(")+1,commandLine.lastIndexOf(")"));
             String[] args;
 
-            switch(commandType){
+            switch(commandType.toLowerCase()){
                 case "btree":
                     args =commandContent.split(",");
                     this.tables.get(args[0]).generateIndex(Table.BTREE,args[1]);
@@ -123,7 +123,7 @@ public class DB {
                     break;
                 case "outputtofile":
                     args =commandContent.split(",");
-                    this.tables.get(args[0]).toString("|");
+                    outputOfFile(args[0],"|");
                     break;
 
             }
@@ -174,7 +174,7 @@ public class DB {
                 for(int j=0;j<ll.size();j++){
                     for(int k=0;k<ll.get(j).size();k++) {
                         Map<String, Integer> record = new HashMap<>();
-                        Map<String,Integer> record1 = t1.getRecords().get(k);
+                        Map<String,Integer> record1 = t1.getRecords().get(ll.get(j).get(k));
 
                         for (String name : t1.getRowNames()) {
                             record.put(n1 + "_" + name, record1.get(name));
@@ -209,7 +209,7 @@ public class DB {
                 for(int j=0;j<ll.size();j++){
                     for(int k=0;k<ll.get(j).size();k++) {
                         Map<String, Integer> record = new HashMap<>();
-                        Map<String,Integer> record2 = t2.getRecords().get(k);
+                        Map<String,Integer> record2 = t2.getRecords().get(ll.get(j).get(k));
 
                         for (String name : t1.getRowNames()) {
                             record.put(n1 + "_" + name, record1.get(name));
@@ -367,6 +367,7 @@ public class DB {
         this.tables.put(name,table);
     }
     public void outputOfFile(String tableName,String splitter){
+
         System.out.println(this.tables.get(tableName).toString(splitter));
 
     }
