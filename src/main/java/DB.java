@@ -24,8 +24,9 @@ public class DB {
         this.tables = tables;
     }
 
+
     public void handleCommand(String commandLine) throws Exception {
-        commandLine=commandLine.split("//")[0].trim();//get rid of the comment
+        commandLine=commandLine.split("//")[0].replaceAll("\\s|\\n","");//get rid of the comment
         if(commandLine.length()==0){
             return;
         }
@@ -122,16 +123,130 @@ public class DB {
                     break;
                 case "outputtofile":
                     args =commandContent.split(",");
-                    this.tables.get(args[0]).toString("|");
+                    outputOfFile(args[0],"|");
                     break;
 
             }
         }
     }
+
+    private List<Map<String,Integer>> getRangeJoinByBtreeIndex(String n1,String n2,String joinRow1,String joinRow2,String condition,String op){
+        List<Map<String,Integer>> newRecords = null;
+
+        Table t1 = this.getTables().get(n1);
+        Table t2 = this.getTables().get(n2);
+        IndexContainer<Integer,List<Integer>> index1 = t1.getIndexes().get(joinRow1);
+        IndexContainer<Integer,List<Integer>> index2 = t2.getIndexes().get(joinRow2);
+
+
+        int flag=0;
+        BTree<Integer,List<Integer>>  btree=null;
+        if(index1!=null && index1 instanceof BTree){
+            flag=1;
+            btree = (BTree) index1;
+        }
+        if(index2!=null && index2 instanceof BTree){
+            flag=2;
+            btree = (BTree) index2;
+        }
+        List<List<Integer>> ll =null;
+        if(flag==1){
+            newRecords = new ArrayList<>();
+            for(int i=0;i<t2.getRecords().size();i++){
+                Map<String,Integer> record2 = t2.getRecords().get(i);
+
+                switch(op){
+                    case ">":
+                        ll = btree.greaterQuery(record2.get(joinRow2));
+                        break;
+                    case "<":
+                        ll = btree.lesserQuery(record2.get(joinRow2));
+                        break;
+                    case ">=":
+                        ll =btree.greaterQuery(record2.get(joinRow2));
+                        ll.add(btree.get(record2.get(joinRow2)));
+                        break;
+                    case "<=":
+                        ll =btree.lesserQuery(record2.get(joinRow2));
+                        ll.add(btree.get(record2.get(joinRow2)));
+                        break;
+                }
+                for(int j=0;j<ll.size();j++){
+                    for(int k=0;k<ll.get(j).size();k++) {
+                        Map<String, Integer> record = new HashMap<>();
+                        Map<String,Integer> record1 = t1.getRecords().get(ll.get(j).get(k));
+
+                        for (String name : t1.getRowNames()) {
+                            record.put(n1 + "_" + name, record1.get(name));
+                        }
+                        for (String name : t2.getRowNames()) {
+                            record.put(n2 + "_" + name, record2.get(name));
+                        }
+                        newRecords.add(record);
+                    }
+                }
+            }
+        }else if(flag==2){//t2 Btree used
+            newRecords = new ArrayList<>();
+            for(int i=0;i<t1.getRecords().size();i++){
+                Map<String,Integer> record1 = t1.getRecords().get(i);
+                switch(op){
+                    case ">":
+                        ll = btree.lesserQuery(record1.get(joinRow1));
+                        break;
+                    case "<":
+                        ll = btree.greaterQuery(record1.get(joinRow1));
+                        break;
+                    case ">=":
+                        ll = btree.lesserQuery(record1.get(joinRow1));
+                        ll.add(btree.get(record1.get(joinRow1)));
+                        break;
+                    case "<=":
+                        ll = btree.greaterQuery(record1.get(joinRow1));
+                        ll.add(btree.get(record1.get(joinRow1)));
+                        break;
+                }
+                for(int j=0;j<ll.size();j++){
+                    for(int k=0;k<ll.get(j).size();k++) {
+                        Map<String, Integer> record = new HashMap<>();
+                        Map<String,Integer> record2 = t2.getRecords().get(ll.get(j).get(k));
+
+                        for (String name : t1.getRowNames()) {
+                            record.put(n1 + "_" + name, record1.get(name));
+                        }
+                        for (String name : t2.getRowNames()) {
+                            record.put(n2 + "_" + name, record2.get(name));
+                        }
+                        newRecords.add(record);
+                    }
+                }
+            }
+        }
+        return newRecords;
+    }
     public Table join(String condition){
-        condition= condition.toLowerCase().trim();
-        String r1 = condition.split(">|<|=|<=|>=|!=")[0];
-        String r2 = condition.split(">|<|=|<=|>=|!=")[1];
+        String op="";
+        if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+            op="=";
+        }
+        else if (condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)>([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+            op=">";
+        }
+        else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)>=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+            op=">=";
+        }
+        else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)<([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+            op="<";
+        }
+        else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)<=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+            op="<=";
+        }
+        else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)!=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+            op="!=";
+        }
+        condition= condition.trim();
+        String r1 = condition.split(op)[0];
+        String r2 = condition.split(op)[1];
         String n1 = r1.split("\\.")[0];
         String n2 = r2.split("\\.")[0];
         String joinRow1 = r1.split("\\.")[1];
@@ -145,15 +260,20 @@ public class DB {
         List<Map<String,Integer>> records = new ArrayList<>();
         List<String> names = new ArrayList<>();
 
-
         for(String s: t1.getRowNames()){
             names.add(n1+"_"+s);
         }
         for(String s:t2.getRowNames()){
             names.add(n2+"_"+s);
         }
+        if(op.matches(">=|<=|>|<")){
+            List<Map<String,Integer>> rangeRecords = getRangeJoinByBtreeIndex(n1,n2,joinRow1,joinRow2,condition,op);
+            if(rangeRecords!=null){
+                return new Table(rangeRecords,names);
+            }
+        }
         int flag=0;
-        if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){//A.B=C.D
+        if(op.equals("=")){//A.B=C.D
             if(t1.getIndexes().containsKey(joinRow1)){
                 flag=1;
             }
@@ -161,27 +281,29 @@ public class DB {
                 flag=2;
             }
         }
+
         if(flag==0) {//no index used
+
 
             for (Map<String, Integer> record1 : t1.getRecords()) {
                 for (Map<String, Integer> record2 : t2.getRecords()) {
                     boolean satisfied=false;
-                    if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)>([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+                    if(op.equals(">")){
                         satisfied = record1.get(joinRow1) > record2.get(joinRow2);
                     }
-                    else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+                    else if(op.equals("=")){
                         satisfied = record1.get(joinRow1) == record2.get(joinRow2);
                     }
-                    else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)<([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+                    else if(op.equals("<")){
                         satisfied = record1.get(joinRow1) < record2.get(joinRow2);
                     }
-                    else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)>=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+                    else if(op.equals(">=")){
                         satisfied = record1.get(joinRow1) >= record2.get(joinRow2);
                     }
-                    else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)<=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+                    else if(op.equals("<=")){
                         satisfied = record1.get(joinRow1) <= record2.get(joinRow2);
                     }
-                    else if(condition.matches("([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)!=([A-z]([A-z]|[0-9]|_)*)\\.([A-z]([A-z]|[0-9]|_)*)")){
+                    else if(op.equals("!=")){
                         satisfied = record1.get(joinRow1) != record2.get(joinRow2);
                     }
                     if(satisfied){
@@ -245,6 +367,7 @@ public class DB {
         this.tables.put(name,table);
     }
     public void outputOfFile(String tableName,String splitter){
+
         System.out.println(this.tables.get(tableName).toString(splitter));
 
     }

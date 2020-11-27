@@ -41,6 +41,7 @@ public class Table {
             }
             this.records.add(record);
         }
+        this.indexes=new HashMap<>();
         reader.close();
     }
     public void setRecords(List<Map<String, Integer>> records) {
@@ -67,7 +68,7 @@ public class Table {
         }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
-        newNames.add("SUM");
+        newNames.add("sum");
         for(String row:groupRows){
             newNames.add(row);
         }
@@ -92,7 +93,7 @@ public class Table {
                     }
                 }
                 Map<String,Integer> record=new HashMap<>();
-                record.put("SUM",sum);
+                record.put("sum",sum);
                 for(String row:groupRows){
                     record.put(row,currentRecord.get(row));
                 }
@@ -104,6 +105,18 @@ public class Table {
     }
 
     public Table sort(List<String> rows){
+        if(indexes.containsKey(rows.get(0))&&indexes.get(rows.get(0))instanceof BTree){//BTree indexed
+            List<Map<String,Integer>> newRecords = new ArrayList<>();
+            BTree<Integer,List<Integer>> btree = (BTree) indexes.get(rows.get(0));
+            List<List<Integer>> ll = btree.lesserQuery(Integer.MAX_VALUE);
+            for(int i=0;i<ll.size();i++){
+                List<Integer> l = ll.get(i);
+                for(int j=0;j<l.size();j++){
+                    newRecords.add(this.records.get(l.get(j)));
+                }
+            }
+            return new Table(newRecords,this.rowNames);
+        }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         for(int i=0;i<records.size();i++){
             newRecords.add(records.get(i));
@@ -130,7 +143,7 @@ public class Table {
         }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
-        newNames.add("AVG");
+        newNames.add("avg");
         for(String row:groupRows){
             newNames.add(row);
         }
@@ -157,7 +170,7 @@ public class Table {
                     }
                 }
                 Map<String,Integer> record=new HashMap<>();
-                record.put("AVG",sum/count);
+                record.put("avg",sum/count);
                 for(String row:groupRows){
                     record.put(row,currentRecord.get(row));
                 }
@@ -172,18 +185,18 @@ public class Table {
         Integer sum=0;
         List<String> newNames = new ArrayList<>();
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        newNames.add("movAvg");
+        newNames.add("movavg");
         for(int i=0;i<records.size();i++){
             sum+=records.get(i).get(avgRow);
             if(i>=mov){
                 sum-=records.get(i-mov).get(avgRow);
                 Map<String,Integer> record = new HashMap<>();
-                record.put("movAvg",sum/mov);
+                record.put("movavg",sum/mov);
                 newRecords.add(record);
             }
             else{
                 Map<String,Integer> record = new HashMap<>();
-                record.put("movAvg",sum/(i+1));
+                record.put("movavg",sum/(i+1));
                 newRecords.add(record);
             }
         }
@@ -194,28 +207,28 @@ public class Table {
         Integer sum=0;
         List<String> newNames = new ArrayList<>();
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        newNames.add("movSum");
+        newNames.add("movsum");
         for(int i=0;i<records.size();i++){
             sum+=records.get(i).get(sumRow);
             if(i>=mov){
                 sum-=records.get(i-mov).get(sumRow);
             }
             Map<String,Integer> record = new HashMap<>();
-            record.put("movSum",sum);
+            record.put("movsum",sum);
             newRecords.add(record);
         }
         return new Table(newRecords,newNames);
     }
     public Table avg(String rowName){
         List<String> newNames = new ArrayList<>();
-        newNames.add("AVG");
+        newNames.add("avg");
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         Integer sum=0;
         for(Map<String,Integer> record : this.records){
             sum+=record.get(rowName);
         }
         Map<String,Integer> record = new HashMap<>();
-        record.put("AVG",sum/records.size());
+        record.put("avg",sum/records.size());
         newRecords.add(record);
         return new Table(newRecords,newNames);
     }
@@ -254,6 +267,71 @@ public class Table {
         this.rowNames = rowNames;
     }
 
+    private List<Map<String,Integer>> getRangeRecordsByBTreeIndex(String condition,String op){
+        List<Map<String,Integer>> newRecords = null;
+        String l = condition.split(op)[0];
+        String r = condition.split(op)[1];
+        Integer x =0;
+        String indexRow;
+        int flag=0;
+        if(l.matches("[0-9]+")){//5opA
+            x=Integer.valueOf(l);
+            indexRow=r;
+            flag=1;
+        }else{//Aop5
+            x=Integer.valueOf(r);
+            indexRow=l;
+        }
+        if(indexes.get(indexRow)!=null&&indexes.get(indexRow) instanceof BTree) {
+            newRecords = new ArrayList<>();
+            BTree<Integer, List<Integer>> btree = (BTree) indexes.get(indexRow);
+
+            List<List<Integer>> ll =null;
+            if(flag==0){
+                switch(op){
+                    case ">"://A>5
+                        ll = btree.greaterQuery(x);
+                        break;
+                    case ">="://a>=5
+                        ll = btree.greaterQuery(x);
+                        ll.add(btree.get(x));
+                        break;
+                    case "<":
+                        ll = btree.lesserQuery(x);
+                        break;
+                    case "<=":
+                        ll = btree.lesserQuery(x);
+                        ll.add(btree.get(x));
+                }
+
+            }
+            else{
+                switch(op){
+                    case ">"://5>a
+                        ll = btree.lesserQuery(x);
+                        break;
+                    case ">="://a>=5
+                        ll = btree.lesserQuery(x);
+                        ll.add(btree.get(x));
+                        break;
+                    case "<":
+                        ll = btree.greaterQuery(x);
+                        break;
+                    case "<=":
+                        ll = btree.greaterQuery(x);
+                        ll.add(btree.get(x));
+                }
+            }
+            for (int i = 0; i < ll.size(); i++) {
+                List<Integer> list = ll.get(i);
+                for (int j = 0; j < list.size(); j++) {
+                    newRecords.add(this.records.get(list.get(j)));
+                }
+            }
+        }
+        return newRecords;
+
+    }
 
     public Table select(String conditions){
         List<Map<String,Integer>> newRecords = new ArrayList<>();
@@ -278,7 +356,34 @@ public class Table {
             }
 
         }
+        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)>(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+            List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,">");
+            if(btreeRecords!=null){
+                return new Table(btreeRecords,this.rowNames);
+            }
 
+        }
+        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)<(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+            List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,"<");
+            if(btreeRecords!=null){
+                return new Table(btreeRecords,this.rowNames);
+            }
+
+        }
+        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)>=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+            List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,">=");
+            if(btreeRecords!=null){
+                return new Table(btreeRecords,this.rowNames);
+            }
+
+        }
+        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)<=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+            List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,"<=");
+            if(btreeRecords!=null){
+                return new Table(btreeRecords,this.rowNames);
+            }
+
+        }
         CharStream stream = CharStreams.fromString(conditions);
         //用 in 构造词法分析器 lexer，词法分析的作用是产生记号
         GrammarLexer lexer = new GrammarLexer(stream);
@@ -343,9 +448,12 @@ public class Table {
     public static void main(String[] args){
         try {
             Table t=new Table("sales1.txt");
-            String[] rowNames={"pricerange","saleid"};
-            System.out.println(t.movSum("qty",3).toString("|"));
+            t.generateIndex(Table.BTREE,"saleid");
+            String [] rows ={"saleid"};
+            System.out.println(t.sort(Arrays.asList(rows.clone())).toString("|"));
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

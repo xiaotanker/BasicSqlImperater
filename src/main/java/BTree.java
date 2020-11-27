@@ -14,8 +14,8 @@
  ******************************************************************************/
 
 
-
-
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *  The {@code BTree} class represents an ordered symbol table of generic
@@ -53,6 +53,7 @@ public class BTree<Key extends Comparable<Key>, Value> implements IndexContainer
     private Node root;       // root of the B-tree
     private int height;      // height of the B-tree
     private int n;           // number of key-value pairs in the B-tree
+    private Entry head=null,tail=null;
 
     // helper B-tree node data type
     private static final class Node {
@@ -71,13 +72,31 @@ public class BTree<Key extends Comparable<Key>, Value> implements IndexContainer
         private Comparable key;
         private Object val;
         private Node next;     // helper field to iterate over array entries
+        private Entry nextEntry=null,prevEntry=null;
         public Entry(Comparable key, Object val, Node next) {
             this.key  = key;
             this.val  = val;
             this.next = next;
         }
     }
-
+    public List<Value> lesserQuery(Key key){
+        Entry e = head;
+        List<Value> list = new ArrayList<>();
+        while(e!=null&&less(e.key,key)){
+            list.add((Value) e.val);
+            e=e.nextEntry;
+        }
+        return list;
+    }
+    public List<Value> greaterQuery(Key key){
+        Entry e = tail;
+        List<Value> list = new ArrayList<>();
+        while(e!=null&&less(key,e.key)){
+            list.add((Value) e.val);
+            e=e.prevEntry;
+        }
+        return list;
+    }
     /**
      * Initializes an empty B-tree.
      */
@@ -167,6 +186,25 @@ public class BTree<Key extends Comparable<Key>, Value> implements IndexContainer
         root = t;
         height++;
     }
+    private Entry findPrev(Node x,Key key,int ht){
+        Entry[] children = x.children;
+
+        // external node
+        if (ht == 0) {
+            for (int j = 0; j < x.m; j++) {
+                if ((j==x.m-1)||less(key, children[j+1].key)) return  children[j];
+            }
+        }
+
+        // internal node
+        else {
+            for (int j = 0; j < x.m; j++) {
+                if (j+1 == x.m || less(key, children[j+1].key))
+                    return findPrev(children[j].next, key, ht-1);
+            }
+        }
+        return null;
+    }
 
     private Node insert(Node h, Key key, Value val, int ht) {
         int j;
@@ -176,6 +214,31 @@ public class BTree<Key extends Comparable<Key>, Value> implements IndexContainer
         if (ht == 0) {
             for (j = 0; j < h.m; j++) {
                 if (less(key, h.children[j].key)) break;
+            }
+            if(this.head==null){
+                this.head=t;
+                this.tail=t;
+            }
+            else if(less(key,head.key)){
+                t.nextEntry=head;
+                head.prevEntry=t;
+                head = t;
+            }
+            else{
+
+                Entry prev = findPrev(root,key,height);
+                //System.out.println("prev of key "+key+" is "+prev.key);
+                Entry next = prev.nextEntry;
+                if(next!=null) {
+                    next.prevEntry = t;
+                }
+                else{
+                    tail = t;
+                }
+                prev.nextEntry = t;
+                t.nextEntry = next;
+                t.prevEntry = prev;
+
             }
         }
 
@@ -197,6 +260,7 @@ public class BTree<Key extends Comparable<Key>, Value> implements IndexContainer
             h.children[i] = h.children[i-1];
         h.children[j] = t;
         h.m++;
+
         if (h.m < M) return null;
         else         return split(h);
     }
@@ -249,7 +313,27 @@ public class BTree<Key extends Comparable<Key>, Value> implements IndexContainer
 
 
 
-
+    public static void main(String[] args){
+        BTree<Integer,Integer> st = new BTree<>();
+        st.put(1,2);
+        st.put(2,3);
+        st.put(5,6);
+        st.put(4,5);
+        st.put(3,5);
+        st.put(0,5);
+        Entry e = st.head;
+        while(e!=null) {
+            System.out.print(e.key +"\t");
+            e=e.nextEntry;
+        }
+        System.out.println();
+        e = st.tail;
+        while(e!=null){
+            System.out.print(e.key +"\t");
+            e=e.prevEntry;
+        }
+        System.out.println();
+    }
 
 
 }
