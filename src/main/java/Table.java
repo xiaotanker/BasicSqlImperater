@@ -68,7 +68,7 @@ public class Table {
         }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
-        newNames.add("SUM");
+        newNames.add("sum");
         for(String row:groupRows){
             newNames.add(row);
         }
@@ -93,7 +93,7 @@ public class Table {
                     }
                 }
                 Map<String,Integer> record=new HashMap<>();
-                record.put("SUM",sum);
+                record.put("sum",sum);
                 for(String row:groupRows){
                     record.put(row,currentRecord.get(row));
                 }
@@ -143,7 +143,7 @@ public class Table {
         }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
-        newNames.add("AVG");
+        newNames.add("avg");
         for(String row:groupRows){
             newNames.add(row);
         }
@@ -170,7 +170,7 @@ public class Table {
                     }
                 }
                 Map<String,Integer> record=new HashMap<>();
-                record.put("AVG",sum/count);
+                record.put("avg",sum/count);
                 for(String row:groupRows){
                     record.put(row,currentRecord.get(row));
                 }
@@ -185,18 +185,18 @@ public class Table {
         Integer sum=0;
         List<String> newNames = new ArrayList<>();
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        newNames.add("movAvg");
+        newNames.add("movavg");
         for(int i=0;i<records.size();i++){
             sum+=records.get(i).get(avgRow);
             if(i>=mov){
                 sum-=records.get(i-mov).get(avgRow);
                 Map<String,Integer> record = new HashMap<>();
-                record.put("movAvg",sum/mov);
+                record.put("movavg",sum/mov);
                 newRecords.add(record);
             }
             else{
                 Map<String,Integer> record = new HashMap<>();
-                record.put("movAvg",sum/(i+1));
+                record.put("movavg",sum/(i+1));
                 newRecords.add(record);
             }
         }
@@ -207,28 +207,28 @@ public class Table {
         Integer sum=0;
         List<String> newNames = new ArrayList<>();
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        newNames.add("movSum");
+        newNames.add("movsum");
         for(int i=0;i<records.size();i++){
             sum+=records.get(i).get(sumRow);
             if(i>=mov){
                 sum-=records.get(i-mov).get(sumRow);
             }
             Map<String,Integer> record = new HashMap<>();
-            record.put("movSum",sum);
+            record.put("movsum",sum);
             newRecords.add(record);
         }
         return new Table(newRecords,newNames);
     }
     public Table avg(String rowName){
         List<String> newNames = new ArrayList<>();
-        newNames.add("AVG");
+        newNames.add("avg");
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         Integer sum=0;
         for(Map<String,Integer> record : this.records){
             sum+=record.get(rowName);
         }
         Map<String,Integer> record = new HashMap<>();
-        record.put("AVG",sum/records.size());
+        record.put("avg",sum/records.size());
         newRecords.add(record);
         return new Table(newRecords,newNames);
     }
@@ -449,7 +449,8 @@ public class Table {
         try {
             Table t=new Table("sales1.txt");
             t.generateIndex(Table.BTREE,"saleid");
-            System.out.println(t.select("saleid>100").toString("|"));
+            String [] rows ={"saleid"};
+            System.out.println(t.sort(Arrays.asList(rows.clone())).toString("|"));
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
