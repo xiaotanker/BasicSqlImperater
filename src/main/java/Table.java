@@ -183,41 +183,53 @@ public class Table {
 
     public Table movAvg(String avgRow,int mov){
         Integer sum=0;
-        List<String> newNames = new ArrayList<>();
+
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        newNames.add("movavg");
+
         for(int i=0;i<records.size();i++){
             sum+=records.get(i).get(avgRow);
-            if(i>=mov){
-                sum-=records.get(i-mov).get(avgRow);
-                Map<String,Integer> record = new HashMap<>();
-                record.put("movavg",sum/mov);
-                newRecords.add(record);
+            Map<String, Integer> record = new HashMap<>();
+            for(String name:this.rowNames) {
+                if(name.equals(avgRow)) {
+                    if (i >= mov) {
+                        sum -= records.get(i - mov).get(avgRow);
+                        record.put(avgRow, sum / mov);
+
+                    } else {
+                        record.put(avgRow, sum / (i + 1));
+                    }
+                }
+                else{
+                    record.put(name,records.get(i).get(name));
+                }
             }
-            else{
-                Map<String,Integer> record = new HashMap<>();
-                record.put("movavg",sum/(i+1));
-                newRecords.add(record);
-            }
+            newRecords.add(record);
         }
-        return new Table(newRecords,newNames);
+        return new Table(newRecords,this.rowNames);
     }
 
     public Table movSum(String sumRow,int mov){
         Integer sum=0;
-        List<String> newNames = new ArrayList<>();
+
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        newNames.add("movsum");
+
         for(int i=0;i<records.size();i++){
             sum+=records.get(i).get(sumRow);
-            if(i>=mov){
-                sum-=records.get(i-mov).get(sumRow);
+            Map<String, Integer> record = new HashMap<>();
+            for(String name:this.rowNames) {
+                if(name.equals(sumRow)) {
+                    if (i >= mov) {
+                        sum -= records.get(i - mov).get(sumRow);
+                    }
+                    record.put(sumRow, sum);
+                }
+                else{
+                    record.put(name,this.records.get(i).get(name));
+                }
             }
-            Map<String,Integer> record = new HashMap<>();
-            record.put("movsum",sum);
             newRecords.add(record);
         }
-        return new Table(newRecords,newNames);
+        return new Table(newRecords,this.rowNames);
     }
     public Table avg(String rowName){
         List<String> newNames = new ArrayList<>();
