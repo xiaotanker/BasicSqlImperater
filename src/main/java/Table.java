@@ -69,9 +69,7 @@ public class Table {
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
         newNames.add("sum");
-        for(String row:groupRows){
-            newNames.add(row);
-        }
+        newNames.addAll(groupRows);
         for(int i=0;i<records.size();i++){
             if(flag[i]==false){
                 Integer sum=records.get(i).get(sumRow);
@@ -118,9 +116,7 @@ public class Table {
             return new Table(newRecords,this.rowNames);
         }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        for(int i=0;i<records.size();i++){
-            newRecords.add(records.get(i));
-        }
+        newRecords.addAll(records);
 
         Collections.sort(newRecords, (record1, record2) -> {
             for(int i=0;i<rows.size();i++){
@@ -144,9 +140,7 @@ public class Table {
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
         newNames.add("avg");
-        for(String row:groupRows){
-            newNames.add(row);
-        }
+        newNames.addAll(groupRows);
         for(int i=0;i<records.size();i++){
             if(flag[i]==false){
                 Integer sum=records.get(i).get(avgRow);
@@ -442,12 +436,8 @@ public class Table {
         List<Map<String,Integer>> records1 = this.records;
         List<Map<String,Integer>> records2 = table.getRecords();
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        for(int i=0;i<records1.size();i++){
-            newRecords.add(records1.get(i));
-        }
-        for(int i=0;i<records2.size();i++){
-            newRecords.add(records2.get(i));
-        }
+        newRecords.addAll(records1);
+        newRecords.addAll(records2);
         return new Table(newRecords,this.rowNames);
     }
     public Table(List<Map<String,Integer>> records,List<String> rowNames) {
@@ -459,14 +449,14 @@ public class Table {
         StringBuilder sb = new StringBuilder();
         sb.append(rowNames.get(0));
         for(int i=1;i<rowNames.size();i++){
-            sb.append(splitter+rowNames.get(i));
+            sb.append(splitter).append(rowNames.get(i));
         }
         sb.append("\n");
 
         for(Map<String,Integer> record:records){
             sb.append(record.get(rowNames.get(0)));
             for(int i=1;i<rowNames.size();i++){
-                sb.append(splitter+record.get(rowNames.get(i)));
+                sb.append(splitter).append(record.get(rowNames.get(i)));
             }
             sb.append("\n");
         }
