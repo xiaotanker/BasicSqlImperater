@@ -10,6 +10,7 @@ public class Boot {
 
         if(args.length<1){
             System.out.println("input needed: commandFile");
+            return;
         }
         try {
             BufferedReader reader = new BufferedReader(new FileReader(args[0]));
