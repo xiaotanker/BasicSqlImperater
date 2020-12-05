@@ -28,9 +28,11 @@ public class Table {
 
     public Table(String fileName) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String nameLine = reader.readLine();
+        String nameLine = reader.readLine().toLowerCase();
         String[] names = nameLine.split("\\|");
+
         rowNames = new ArrayList<>(Arrays.asList(names));
+
         records=new ArrayList<>();
         String dataLine;
         while(( dataLine = reader.readLine()) != null){
@@ -463,15 +465,6 @@ public class Table {
         return sb.toString();
     }
     public static void main(String[] args){
-        try {
-            Table t=new Table("sales1.txt");
-            t.generateIndex(Table.BTREE,"saleid");
-            String [] rows ={"saleid"};
-            System.out.println(t.sort(Arrays.asList(rows.clone())).toString("|"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
     }
 }
