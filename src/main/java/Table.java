@@ -64,42 +64,33 @@ public class Table {
     }
 
     public Table sumGroup(String sumRow,List<String> groupRows){
-        boolean[] flag = new boolean[records.size()];
-        for(int i=0;i<flag.length;i++){
-            flag[i]=false;
-        }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
         newNames.add("sum");
         newNames.addAll(groupRows);
-        for(int i=0;i<records.size();i++){
-            if(flag[i]==false){
-                Integer sum=records.get(i).get(sumRow);
-                Map<String,Integer> currentRecord = records.get(i);
-                for(int j=i+1;j<records.size();j++){
-                    if(flag[j]==false){
-                        boolean f=true;
-                        for(String row:groupRows){
-                            if(currentRecord.get(row)!=records.get(j).get(row)){
-                                f=false;
-                                break;
-                            }
-                        }
-                        if(f==true){//group
-                            flag[j]=true;
-                            sum+=records.get(j).get(sumRow);
-                        }
+        Map<List<Integer>,Map<String,Integer>> group = new HashMap<>();
 
-                    }
-                }
-                Map<String,Integer> record=new HashMap<>();
-                record.put("sum",sum);
-                for(String row:groupRows){
-                    record.put(row,currentRecord.get(row));
-                }
-                newRecords.add(record);
-                flag[i]=true;
+        for(int i=0;i<records.size();i++){
+            Map<String,Integer> record = records.get(i);
+            List<Integer> groupList = new ArrayList<>();
+            for (String groupRow : groupRows) {
+                groupList.add(record.get(groupRow));
             }
+            Map<String,Integer> groupRecord = group.get(groupList);
+            if(groupRecord==null){
+                groupRecord = new HashMap<>();
+                for(String row:groupRows){
+                    groupRecord.put(row,record.get(row));
+                }
+                groupRecord.put("sum",record.get(sumRow));
+                group.put(groupList,groupRecord);
+            }
+            else{
+                groupRecord.put("sum",record.get(sumRow)+groupRecord.get("sum"));
+            }
+        }
+        for(Map.Entry<List<Integer>,Map<String,Integer>> entry:group.entrySet()){
+            newRecords.add(entry.getValue());
         }
         return new Table(newRecords,newNames);
     }
@@ -135,44 +126,41 @@ public class Table {
         return new Table(newRecords,this.rowNames);
     }
     public Table avgGroup(String avgRow,List<String> groupRows){
-        boolean[] flag = new boolean[records.size()];
-        for(int i=0;i<flag.length;i++){
-            flag[i]=false;
-        }
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
         newNames.add("avg");
         newNames.addAll(groupRows);
-        for(int i=0;i<records.size();i++){
-            if(flag[i]==false){
-                Integer sum=records.get(i).get(avgRow);
-                Integer count=1;
-                Map<String,Integer> currentRecord = records.get(i);
-                for(int j=i+1;j<records.size();j++){
-                    if(flag[j]==false){
-                        boolean f=true;
-                        for(String row:groupRows){
-                            if(currentRecord.get(row)!=records.get(j).get(row)){
-                                f=false;
-                                break;
-                            }
-                        }
-                        if(f==true){//group
-                            flag[j]=true;
-                            sum+=records.get(j).get(avgRow);
-                            count++;
-                        }
+        Map<List<Integer>,Map<String,Integer>> group = new HashMap<>();
+        Map<List<Integer>,Integer> groupCount= new HashMap<>();
 
-                    }
-                }
-                Map<String,Integer> record=new HashMap<>();
-                record.put("avg",sum/count);
-                for(String row:groupRows){
-                    record.put(row,currentRecord.get(row));
-                }
-                newRecords.add(record);
-                flag[i]=true;
+        for(int i=0;i<records.size();i++){
+            Map<String,Integer> record = records.get(i);
+            List<Integer> groupList = new ArrayList<>();
+            for (String groupRow : groupRows) {
+                groupList.add(record.get(groupRow));
             }
+            Map<String,Integer> groupRecord = group.get(groupList);
+            if(groupRecord==null){
+                groupRecord = new HashMap<>();
+                for(String row:groupRows){
+                    groupRecord.put(row,record.get(row));
+                }
+                groupRecord.put("avg",record.get(avgRow));
+                group.put(groupList,groupRecord);
+                groupCount.put(groupList,1);
+            }
+            else{
+                int count = groupCount.get(groupList);
+                groupRecord.put("avg",record.get(avgRow)+groupRecord.get("avg"));
+                groupCount.put(groupList,count+1);
+            }
+        }
+        for(Map.Entry<List<Integer>,Map<String,Integer>> entry:group.entrySet()){
+            Map<String,Integer> record = entry.getValue();
+            int count = groupCount.get(entry.getKey());
+            int sum = record.get("avg");
+            record.put("avg",sum/count);
+            newRecords.add(record);
         }
         return new Table(newRecords,newNames);
     }
@@ -464,7 +452,13 @@ public class Table {
         }
         return sb.toString();
     }
-    public static void main(String[] args){
-
-    }
+//    public static void main(String[] args){
+//        try {
+//            Table table = new Table("table.txt");
+//            String[] rows = {"b","c"};
+//            table.sumGroup("a", Arrays.asList(rows));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
