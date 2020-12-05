@@ -3,26 +3,21 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Boot {
-    public static void main(String[]args){
+    public static void main(String[] args) {
 
-
-        if(args.length<1){
-            System.out.println("input needed: commandFile");
-            return;
-        }
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(args[0]));
-            DB db= new DB();
-            String commandLine;
-            while((commandLine= reader.readLine())!=null){
+        Scanner reader = new Scanner(System.in);
+        DB db = new DB();
+        while (true) {
+            try {
+                String commandLine;
+                commandLine = reader.nextLine();
                 db.handleCommand(commandLine);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
 
