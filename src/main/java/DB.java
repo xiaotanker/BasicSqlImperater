@@ -26,7 +26,7 @@ public class DB {
 
 
     public void handleCommand(String commandLine) throws Exception {
-        commandLine=commandLine.split("//")[0].replaceAll("\\s|\\n","");//get rid of the comment
+        commandLine=commandLine.split("//")[0].replaceAll("\\s|\\n","").toLowerCase();//get rid of the comment
         if(commandLine.length()==0){
             return;
         }
@@ -38,7 +38,7 @@ public class DB {
             String commandType = command.split("\\(")[0];
             String commandContent = command.substring(command.indexOf("(")+1,command.lastIndexOf(")"));
             String[] args;
-            switch(commandType.toLowerCase()){
+            switch(commandType){
                 case "select"://select(A,(A>5)or(B>C))
                     String tableName = commandContent.split(",")[0];
                     String conditions = commandContent.split(",")[1];
