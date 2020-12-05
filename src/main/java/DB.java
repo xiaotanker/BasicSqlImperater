@@ -25,12 +25,15 @@ public class DB {
     }
 
 
-    public void handleCommand(String commandLine) throws Exception {
+    public boolean handleCommand(String commandLine) throws Exception {
         commandLine=commandLine.split("//")[0].replaceAll("\\s|\\n","").toLowerCase();//get rid of the comment
         if(commandLine.length()==0){
-            return;
+            return true;
         }
         System.out.println("executing command:"+commandLine);
+        if(commandLine.equals("quit")){
+            return false;
+        }
         long startTime=System.currentTimeMillis();
         if(commandLine.contains(":=")){//assignment
             String targetName=commandLine.split(":=")[0];
@@ -132,6 +135,7 @@ public class DB {
         }
         long endTime = System.currentTimeMillis();
         System.out.println("used time :"+(endTime-startTime)+"ms");
+        return true;
     }
 
     private List<Map<String,Integer>> getRangeJoinByBtreeIndex(String n1,String n2,String joinRow1,String joinRow2,String condition,String op){
