@@ -36,6 +36,7 @@ public class Table {
         records=new ArrayList<>();
         String dataLine;
         while(( dataLine = reader.readLine()) != null){
+            dataLine = dataLine.replaceAll(" ","");
             String[] data =dataLine.split("\\|");
             Map<String,Integer> record = new HashMap<>();
             for(int i=0;i<data.length;i++){
