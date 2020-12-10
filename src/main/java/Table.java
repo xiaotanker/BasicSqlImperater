@@ -345,56 +345,58 @@ public class Table {
 
     public Table select(String conditions){
         List<Map<String,Integer>> newRecords = new ArrayList<>();
-        if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")){//equals
-            String l = conditions.split("=")[0];
-            String r = conditions.split("=")[1];
-            Integer x =0;
-            String indexRow;
-            if(l.matches("[0-9]+")){
-                x=Integer.valueOf(l);
-                indexRow=r;
-            }else{
-                x=Integer.valueOf(r);
-                indexRow=l;
-            }
-            if(indexes.containsKey(indexRow)){//index used
-                List<Integer> indexList = indexes.get(indexRow).get(x);
-                if(indexList!=null) {
-                    for (Integer i : indexList) {
-                        newRecords.add(this.records.get(i));
-                    }
-                    return new Table(newRecords, this.rowNames);
+        if(!conditions.matches("([A-z]([A-z]|[0-9]|_)*)(=|>|<|<=|>=|!=)([A-z]([A-z]|[0-9]|_)*)")){// if C OP C no index will be used
+            if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")){//equals
+                String l = conditions.split("=")[0];
+                String r = conditions.split("=")[1];
+                Integer x =0;
+                String indexRow;
+                if(l.matches("[0-9]+")){
+                    x=Integer.valueOf(l);
+                    indexRow=r;
+                }else{
+                    x=Integer.valueOf(r);
+                    indexRow=l;
                 }
-            }
+                if(indexes.containsKey(indexRow)){//index used
+                    List<Integer> indexList = indexes.get(indexRow).get(x);
+                    if(indexList!=null) {
+                        for (Integer i : indexList) {
+                            newRecords.add(this.records.get(i));
+                        }
+                        return new Table(newRecords, this.rowNames);
+                    }
+                }
 
-        }
-        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)>(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
-            List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,">");
-            if(btreeRecords!=null){
-                return new Table(btreeRecords,this.rowNames);
             }
+            else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)>(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+                List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,">");
+                if(btreeRecords!=null){
+                    return new Table(btreeRecords,this.rowNames);
+                }
 
-        }
-        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)<(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
-            List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,"<");
-            if(btreeRecords!=null){
-                return new Table(btreeRecords,this.rowNames);
             }
+            else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)<(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+                List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,"<");
+                if(btreeRecords!=null){
+                    return new Table(btreeRecords,this.rowNames);
+                }
 
-        }
-        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)>=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
-            List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,">=");
-            if(btreeRecords!=null){
-                return new Table(btreeRecords,this.rowNames);
             }
+            else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)>=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+                List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,">=");
+                if(btreeRecords!=null){
+                    return new Table(btreeRecords,this.rowNames);
+                }
 
-        }
-        else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)<=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
-            List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,"<=");
-            if(btreeRecords!=null){
-                return new Table(btreeRecords,this.rowNames);
             }
+            else if(conditions.matches("(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)<=(([A-z]([A-z]|[0-9]|_)*)|[0-9]+)")) {
+                List<Map<String,Integer>> btreeRecords = getRangeRecordsByBTreeIndex(conditions,"<=");
+                if(btreeRecords!=null){
+                    return new Table(btreeRecords,this.rowNames);
+                }
 
+            }
         }
         CharStream stream = CharStreams.fromString(conditions);
 
