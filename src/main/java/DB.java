@@ -1,10 +1,7 @@
 
 import java.io.IOException;
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DB {
     private Map<String,Table> tables;
@@ -26,7 +23,7 @@ public class DB {
 
 
     public boolean handleCommand(String commandLine) throws Exception {
-        commandLine=commandLine.split("//")[0].replaceAll("\\s|\\n","").toLowerCase();//get rid of the comment
+        commandLine=commandLine.split("//")[0].replaceAll("\\s|\\n","");//get rid of the comment
         if(commandLine.length()==0){
             return true;
         }
@@ -36,13 +33,14 @@ public class DB {
         }
         long startTime=System.currentTimeMillis();
         if(commandLine.contains(":=")){//assignment
-            String targetName=commandLine.split(":=")[0];
-            String command=commandLine.split(":=")[1];
-            String commandType = command.split("\\(")[0];
+            String targetName=commandLine.split(":=")[0].toLowerCase();
+            String command=commandLine.split(":=")[1].toLowerCase();
+            String commandType = command.split("\\(")[0].toLowerCase();
             String commandContent = command.substring(command.indexOf("(")+1,command.lastIndexOf(")"));
             String[] args;
             switch(commandType){
                 case "select"://select(A,(A>5)or(B>C))
+                    commandContent=commandContent.toLowerCase();
                     String tableName = commandContent.split(",")[0];
                     String conditions = commandContent.split(",")[1];
                     this.tables.put(targetName,this.tables.get(tableName).select(conditions));
@@ -51,6 +49,7 @@ public class DB {
                     this.tables.put(targetName,new Table(commandContent));
                     break;
                 case "project":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
 
                     Table t = this.tables.get(args[0]);
@@ -61,12 +60,16 @@ public class DB {
                     this.tables.put(targetName,t.projection(rows));
                     break;
                 case "avg":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
                     Table avgSourceTable = this.tables.get(args[0]);
                     this.tables.put(targetName,avgSourceTable.avg(args[1]));
                     break;
                 case "sumgroup":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
+
+
                     Table sumGroupSource = this.tables.get(args[0]);
                     String sumRow = args[1];
                     List<String> sumGroupRows = new ArrayList<>();
@@ -76,6 +79,7 @@ public class DB {
                     this.tables.put(targetName,sumGroupSource.sumGroup(sumRow,sumGroupRows));
                     break;
                 case "avggroup":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
                     Table avgGroupSource = this.tables.get(args[0]);
                     String avgGroupRow = args[1];
@@ -86,10 +90,12 @@ public class DB {
                     this.tables.put(targetName,avgGroupSource.avgGroup(avgGroupRow,avgGroupRows));
                     break;
                 case "join":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
                     this.tables.put(targetName,this.join(args[2]));
                     break;
                 case "sort":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
                     List<String> sortRows =new ArrayList<>();
                     for(int i=1;i<args.length;i++){
@@ -98,14 +104,17 @@ public class DB {
                     this.tables.put(targetName,this.tables.get(args[0]).sort(sortRows));
                     break;
                 case "movavg":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
-                    this.tables.put(targetName,this.tables.get(args[0]).movAvg(args[1],Integer.valueOf(args[2])));
+                    this.tables.put(targetName,this.tables.get(args[0]).movAvg(args[1],Integer.parseInt(args[2])));
                     break;
                 case "movsum":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
-                    this.tables.put(targetName,this.tables.get(args[0]).movSum(args[1],Integer.valueOf(args[2])));
+                    this.tables.put(targetName,this.tables.get(args[0]).movSum(args[1],Integer.parseInt(args[2])));
                     break;
                 case "concat":
+                    commandContent=commandContent.toLowerCase();
                     args = commandContent.split(",");
                     this.tables.put(targetName,this.tables.get(args[0]).concat(this.tables.get(args[1])));
                     break;
@@ -119,14 +128,17 @@ public class DB {
 
             switch(commandType.toLowerCase()){
                 case "btree":
+                    commandContent=commandContent.toLowerCase();
                     args =commandContent.split(",");
                     this.tables.get(args[0]).generateIndex(Table.BTREE,args[1]);
                     break;
                 case "hash":
+                    commandContent=commandContent.toLowerCase();
                     args =commandContent.split(",");
                     this.tables.get(args[0]).generateIndex(Table.HASH,args[1]);
                     break;
                 case "outputtofile":
+                    commandContent=commandContent.toLowerCase();
                     args =commandContent.split(",");
                     outputOfFile(args[0],"|");
                     break;
