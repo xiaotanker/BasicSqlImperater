@@ -70,6 +70,19 @@ public class Table {
         return new Table(newRecords,newRowNames);
     }
 
+    public Table sum(String sumRow){
+        List<Map<String,Integer>> newRecords = new ArrayList<>();
+        List<String> newNames = new ArrayList<>();
+        newNames.add("sum");
+        int sum=0;
+        for(int i=0;i<records.size();i++){
+            sum+=records.get(i).get(sumRow);
+        }
+        HashMap<String,Integer> record = new HashMap<>();
+        record.put("sum",sum);
+        newRecords.add(record);
+        return new Table(newRecords,newNames);
+    }
     public Table sumGroup(String sumRow,List<String> groupRows){
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();

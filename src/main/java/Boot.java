@@ -23,6 +23,7 @@ public class Boot {
                 }
                 catch(Exception e){
                     System.err.println("cannot resolve command:"+commandLine);
+                    e.printStackTrace();
                 }
             }
         } catch (IOException e) {
