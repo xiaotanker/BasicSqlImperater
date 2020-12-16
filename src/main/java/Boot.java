@@ -2,6 +2,7 @@
 
 import java.io.BufferedReader;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 
@@ -11,14 +12,20 @@ public class Boot {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         DB db = new DB();
+
         try {
             String commandLine;
             while ((commandLine = reader.readLine()) != null) {
-                if(!db.handleCommand(commandLine)){
-                    break;
+                try{
+                    if(!db.handleCommand(commandLine)){
+                        break;
+                    }
+                }
+                catch(Exception e){
+                    System.err.println("cannot resolve command:"+commandLine);
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

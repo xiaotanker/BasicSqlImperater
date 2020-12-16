@@ -364,8 +364,8 @@ public class Table {
                         for (Integer i : indexList) {
                             newRecords.add(this.records.get(i));
                         }
-                        return new Table(newRecords, this.rowNames);
                     }
+                    return new Table(newRecords, this.rowNames);
                 }
 
             }
