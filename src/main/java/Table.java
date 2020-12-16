@@ -11,20 +11,7 @@ public class Table {
     public static final String BTREE="BTREE";
     private List<Map<String,Integer>> records;
     private List<String> rowNames;
-
-    public Map<String, IndexContainer<Integer, List<Integer>>> getIndexes() {
-        return indexes;
-    }
-
-    public void setIndexes(Map<String, IndexContainer<Integer, List<Integer>>> indexes) {
-        this.indexes = indexes;
-    }
-
     private Map<String,IndexContainer<Integer,List<Integer>>> indexes;
-
-    public List<Map<String, Integer>> getRecords() {
-        return records;
-    }
 
     public Table(String fileName) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
@@ -47,6 +34,25 @@ public class Table {
         this.indexes=new HashMap<>();
         reader.close();
     }
+
+    public Table(List<Map<String,Integer>> records,List<String> rowNames) {
+        this.records = records;
+        this.rowNames = rowNames;
+        this.indexes= new HashMap<>();
+    }
+
+    public Map<String, IndexContainer<Integer, List<Integer>>> getIndexes() {
+        return indexes;
+    }
+
+    public void setIndexes(Map<String, IndexContainer<Integer, List<Integer>>> indexes) {
+        this.indexes = indexes;
+    }
+
+    public List<Map<String, Integer>> getRecords() {
+        return records;
+    }
+
     public void setRecords(List<Map<String, Integer>> records) {
         this.records = records;
     }
@@ -126,6 +132,7 @@ public class Table {
         });
         return new Table(newRecords,this.rowNames);
     }
+
     public Table avgGroup(String avgRow,List<String> groupRows){
         List<Map<String,Integer>> newRecords = new ArrayList<>();
         List<String> newNames = new ArrayList<>();
@@ -216,6 +223,7 @@ public class Table {
         }
         return new Table(newRecords,this.rowNames);
     }
+
     public Table avg(String rowName){
         List<String> newNames = new ArrayList<>();
         newNames.add("avg");
@@ -433,11 +441,7 @@ public class Table {
         newRecords.addAll(records2);
         return new Table(newRecords,this.rowNames);
     }
-    public Table(List<Map<String,Integer>> records,List<String> rowNames) {
-        this.records = records;
-        this.rowNames = rowNames;
-        this.indexes= new HashMap<>();
-    }
+
     public String toString(String splitter){
         StringBuilder sb = new StringBuilder();
         sb.append(rowNames.get(0));
