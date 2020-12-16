@@ -39,6 +39,12 @@ public class DB {
             String commandContent = command.substring(command.indexOf("(")+1,command.lastIndexOf(")"));
             String[] args;
             switch(commandType){
+                case "sum":
+                    commandContent=commandContent.toLowerCase();
+                    args = commandContent.split(",");
+                    Table sumSource = this.tables.get(args[0]);
+                    this.tables.put(targetName,sumSource.sum(args[1]));
+                    break;
                 case "select"://select(A,(A>5)or(B>C))
                     commandContent=commandContent.toLowerCase();
                     String tableName = commandContent.split(",")[0];
